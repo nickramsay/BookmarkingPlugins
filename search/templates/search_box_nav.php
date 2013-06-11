@@ -1,18 +1,6 @@
 <?php
 /**
- * name: Bookmarklet
- * description: A way for users to submit posts on the fly
- * version: 0.2
- * folder: bookmarklet
- * class: Bookmarklet
- * type: bookmarklet
- * hooks: hotaru_bookmarklet
- * requires: submit 1.9
- * author: Nick Ramsay
- * authorurl: http://hotarucms.org/member.php?1-Nick
- *
- * Usage: Put <?php $h->pluginHook('hotaru_bookmarklet'); ?> 
- *        in your template where you want the bookmarklet link to show.
+ * Template for Search
  *
  * PHP version 5
  *
@@ -36,12 +24,10 @@
  * @link      http://www.hotarucms.org/
  */
 
-
-class Bookmarklet
-{
-    public function hotaru_bookmarklet($h)
-    {
-        $h->template('bookmarklet');
-    }
-
-}
+?>
+    <form class="navbar-search pull-right" accept-charset="UTF-8" name='search_form' id='search_form' action='<?php echo BASEURL; ?>index.php?page=search' method='get'>     
+        <input name="search" id="search_input" type="text" class="search-query span2" placeholder="<?php echo $h->lang('search_text'); ?>">
+        <input name="utf8" type="hidden" value="✓">
+        <input type="hidden" id="dosearch" />
+    </form>
+   

@@ -18,6 +18,9 @@ $lang["bookmarking_top_30_days"] = "Top Posts (last 30 Days)";
 $lang["bookmarking_top_365_days"] = "Top Posts (last 365 Days)";
 $lang["bookmarking_top_all_time"] = "Top Posts (All-Time)";
 $lang["bookmarking_no_posts"] = "No posts found.";
+$lang["bookmarking_cant_find_anything"] = "Can't find anything here?";
+$lang["bookmarking_extend_your_search"] = "Try the following filters to extend your search";
+
 
 /* Post */
 $lang["bookmarking_post_edit"] = "Edit";
@@ -34,6 +37,7 @@ $lang["bookmarking_settings_posts_per_page"] = "Posts per page <small>(default: 
 $lang["bookmarking_settings_default_type"] = "Post type to show as default on list and post pages";
 $lang["bookmarking_settings_default_page"] = "Page type to show as default";
 $lang["bookmarking_settings_rss_redirect"] = "Automatically redirect RSS links to their original sources";
+$lang["bookmarking_settings_sort_bar_dropdown"] = "Use dropdown for selecting filtered posts";
 
 /* Admin Stats */
 $lang["bookmarking_admin_stats_total_posts"] = "Total";
@@ -51,6 +55,7 @@ $lang['bookmarking_users_settings_post'] = SITE_NAME . " post";
 /* Sort & Filter */
 $lang["bookmarking_sort_by"] = "Sort by:";
 $lang["bookmarking_sort_recently_popular"] = "Popular";
+$lang["bookmarking_sort_popular"] = "Popular";
 $lang["bookmarking_sort_upcoming"] = "Upcoming";
 $lang["bookmarking_sort_latest"] = "Latest";
 $lang["bookmarking_sort_new"] = "Latest"; // same as latest, but necessary
@@ -62,5 +67,8 @@ $lang["bookmarking_sort_top_7_days"] = "7 Days";
 $lang["bookmarking_sort_top_30_days"] = "30 Days";
 $lang["bookmarking_sort_top_365_days"] = "365 Days";
 $lang["bookmarking_sort_top_all_time"] = "All Time";
+
+/* Display */
+$lang["bookmarking_number_of_posts"] = "Number of posts found";
 
 ?>

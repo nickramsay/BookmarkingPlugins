@@ -7,7 +7,7 @@
  * class: Search
  * type: search
  * requires: widgets 0.6
- * hooks: install_plugin, theme_index_top, header_include, bookmarking_functions_preparelist, search_box, breadcrumbs, post_rss_feed
+ * hooks: install_plugin, theme_index_top, header_include, bookmarking_functions_preparelist, search_box, search_box_nav, breadcrumbs, post_rss_feed
  * author: Nick Ramsay
  * authorurl: http://nickramsay.com
  *
@@ -75,7 +75,13 @@ class Search
      */
     public function search_box($h)
     {
-        $h->displayTemplate('search_box', 'search');
+        $h->template('search_box', 'search');
+    }
+    
+    
+    public function search_box_nav($h)
+    {
+        $h->template('search_box_nav', 'search');
     }
     
     
@@ -84,7 +90,7 @@ class Search
      */
     public function widget_search($h)
     {
-        $h->displayTemplate('search_box', 'search');
+        $h->template('search_box', 'search');
     }
     
     
@@ -148,6 +154,12 @@ class Search
 			$search_terms_clean .= $search_term . " ";
         }
         
+        // To prevent sql dieing when nothing is being search for        
+        if (!$search_terms_clean) { 
+            $h->messages[$h->lang['search_search_word_error']] = 'alert-info';
+            return array();   // return a blank array so extract doesnt get upset
+        }
+        
         // Undo the filter that limits results to either 'top', 'new' or archived (See submit.php -> sub_prepare_list())
         if (isset($h->vars['filter']['post_status = %s'])) { unset($h->vars['filter']['post_status = %s']); }
         if (isset($h->vars['filter']['post_archived = %s'])) { unset($h->vars['filter']['post_archived = %s']); }
@@ -155,7 +167,7 @@ class Search
         // filter to top or new stories only:
         $h->vars['filter']['(post_status = %s OR post_status = %s)'] = array('top', 'new');
         
-		$select = ($return == 'count') ? "count(*) AS number " : "*";
+        $select = ($return == 'count') ? "count(*) AS number " : "*";
         if ($full_text) {
             $h->vars['select'] = array($select . ", MATCH(post_title, post_domain, post_url, post_content, post_tags) AGAINST (%s) AS relevance" => trim($search_terms_clean));
             $h->vars['orderby'] = "relevance DESC";
@@ -217,7 +229,7 @@ class Search
         
         $word_array = explode(' ', $stopwordlist);
     
-        if (array_search($word, $word_array) == true) {
+        if (array_search(strtolower($word), $word_array) == true) {
             return true;
         } else {
             return false;

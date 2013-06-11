@@ -2,11 +2,11 @@
 /**
  * name: Users
  * description: Provides profile, settings and permission pages
- * version: 2.2
+ * version: 2.3
  * folder: users
  * type: users
  * class: Users
- * hooks: pagehandling_getpagename, theme_index_top, header_include, bookmarking_functions_preparelist, breadcrumbs, theme_index_main, users_edit_profile_save, user_settings_save, admin_theme_main_stats, header_meta, post_rss_feed
+ * hooks: install_plugin, pagehandling_getpagename, theme_index_top, header_include, bookmarking_functions_preparelist, breadcrumbs, theme_index_main, users_edit_profile_save, user_settings_save, admin_theme_main_stats, header_meta, post_rss_feed
  * author: Nick Ramsay
  * authorurl: http://hotarucms.org/member.php?1-Nick
  *
@@ -35,6 +35,34 @@
 class Users
 {
     /**
+    * Install Post Images
+    */
+    public function install_plugin($h)
+    {
+                // include following checks in case the folder has been deleted
+                // we actually include a default images/user folder with some default images in the core zip
+                $folder = BASE . '/content/images/user/';
+		if(!is_dir($folder)){
+			if(mkdir($folder,0777,true)) 
+                            $msg =  "Users image folder was created";
+			else 
+                            $msg = "A folder for images at " . $folder . " could not be created. Please try creating manually";
+		}
+		else if(!is_writable($folder)){
+			if(chmod("/somedir/somefile", 777)) 
+                            $msg = "Folder found and made writable";
+			else 
+                            $msg = "Could not change the folders permissions, please make it writable manually";
+		}
+		else {
+			$msg = "Image folder exists and is writeable";
+                }
+                
+                $h->messages[$msg] = 'alert-info';               
+    }
+    
+        
+    /**
      * Check if we're looking at a user page
      */
     public function pagehandling_getpagename($h, $query_vars)
@@ -50,7 +78,7 @@ class Users
      * Determine what page we're looking at
      */
     public function theme_index_top($h)
-    {
+    {        
         $user = $h->cage->get->testUsername('user');
         if ($user) {
             $h->subPage = 'user';
@@ -122,6 +150,7 @@ class Users
         if (isset($result)) {
             $h->vars['profile'] = $h->vars['user']->getProfileSettingsData($h, 'user_profile');
             $h->vars['settings'] = $h->vars['user']->getProfileSettingsData($h, 'user_settings');
+            $h->vars['user']->id = isset($result->user_id) ? $result->user_id : 0;
         } else {
             $h->pageTitle = $h->lang["main_theme_page_not_found"];
             $h->pageType = '';
@@ -191,6 +220,8 @@ class Users
      */
     public function breadcrumbs($h)
     {
+        $crumbs = '';
+        
         if (isset($h->vars['user']) && $h->vars['user']->name) {
             $userlink = "<a href='" . $h->url(array('user'=>$h->vars['user']->name)) . "'>";
             $userlink .= $h->vars['user']->name . "</a>";
@@ -202,24 +233,24 @@ class Users
         switch ($h->pageName)
         {
             case 'profile':
-                $crumbs = $userlink . ' &raquo; ' . $h->lang["users_profile"];
-                return $crumbs;
+                $crumbs = $userlink . ' / ' . $h->lang["users_profile"];
+                //return $crumbs;
                 break;
             case 'account':
-                $crumbs = $userlink . ' &raquo; ' . $h->lang["users_account"];
-                return $crumbs;
+                $crumbs = $userlink . ' / ' . $h->lang["users_account"];
+                //return $crumbs;
                 break;
             case 'edit-profile':
-                $crumbs = $userlink . ' &raquo; ' . $h->lang["users_profile_edit"];
-                return $crumbs;
+                $crumbs = $userlink . ' / ' . $h->lang["users_profile_edit"];
+                //return $crumbs;
                 break;
             case 'user-settings':
-                $crumbs = $userlink . ' &raquo; ' . $h->lang["users_settings"];
-                return $crumbs;
+                $crumbs = $userlink . ' / ' . $h->lang["users_settings"];
+                //return $crumbs;
                 break;
             case 'permissions':
-                $crumbs = $userlink . ' &raquo; ' . $h->lang["users_permissions"];
-                return $crumbs;
+                $crumbs = $userlink . ' / ' . $h->lang["users_permissions"];
+                //return $crumbs;
                 break;
         }
 
@@ -251,10 +282,45 @@ class Users
             $user = $h->cage->get->testUsername('user');
             $crumbs = "<a href='" . $h->url(array('user'=>$user)) . "'>\n";
             $crumbs .= $user . "</a>\n ";
-            $crumbs .= " &raquo; " . $title;
+            $crumbs .= " / " . $title;                                    
             
             return $crumbs . $h->rssBreadcrumbsLink('', array('user'=>$user));
         }
+        
+        // only show if the person has admin access
+        if ($h->currentUser->adminAccess) { 
+            
+            // put a dropdown on the right handside of the breadcrumb nav
+            $crumbs .= '<div class="pull-right">' .
+                    '<div class="btn-group">' .
+                    '<a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="#">' .
+                    'Admin&nbsp;<span class="caret"></span></a>' .
+                    '<ul class="dropdown-menu">' .
+                    '<!-- dropdown menu links -->';
+
+                        $crumbs .= '<li><a href="' . $h->url(array('page'=>'account', 'user'=>$h->vars['user']->name)) . '">' . $h->lang["users_account"] . '</a></li>';
+                        $crumbs .= '<li><a href="' . $h->url(array('page'=>'edit-profile', 'user'=>$h->vars['user']->name)) . '">' . $h->lang["users_profile_edit"] . '</a></li>';
+                        $crumbs .= '<li><a href="' . $h->url(array('page'=>'user-settings', 'user'=>$h->vars['user']->name)) . '">' . $h->lang["users_settings"] . '</a></li>';                        
+                        
+                        $crumbs .= '<li class="divider"></li>';
+                        
+                        // show permissions   
+                        $href = $h->url(array('page'=>'permissions', 'user'=>$h->vars['user']->name));
+                        $crumbs .= '<li><a href="' . $href . '">' . $h->lang["users_permissions"] . '</a></li>';
+ 
+                        // show User Manager link only if theplugin is active
+                        if ($h->isActive('user_manager')) {
+                            $crumbs .= '<li><a href="' . BASEURL . 'admin_index.php?search_value=' . $h->vars['user']->name . '&amp;plugin=user_manager&amp;page=plugin_settings&amp;type=search#tab_settings">' . $h->lang['user_man_link'] . '</a></li>';
+
+                            $h->pluginHook('profile_navigation_restricted');                        
+                         }        
+                         
+                $crumbs .= '</ul>' .
+                  '</div>' .  
+                  '</div>';
+        }
+
+        return $crumbs;
     }
     
     
@@ -265,8 +331,8 @@ class Users
     {
         if ($h->pageType != 'user') { return false; }
 
-		// if user doesn't exist
-		if (!$h->vars['user']->name) { return false; }
+        // if user doesn't exist
+        if (!$h->vars['user']->name) { return false; }
         if ($h->userExists(0, $h->vars['user']->name) == 'no') { return false; }
         
         // determine permissions
@@ -274,32 +340,32 @@ class Users
         if ($h->currentUser->getPermission('can_access_admin') == 'yes') { $admin = true; }
         if ($h->currentUser->id == $h->vars['user']->id) { $own = true; }
 
-        $h->displayTemplate('users_navigation');
+        $h->template('users_navigation');
         
         switch($h->pageName) {
             case 'profile':
-                $h->displayTemplate('users_profile');
+                $h->template('users_profile');
                 return true;
                 break;
             case 'account':
                 if (!$admin && !$own) { $denied = true; break; }
-                $h->displayTemplate('users_account');
+                $h->template('users_account');
                 return true;
                 break;
             case 'edit-profile':
                 if (!$admin && !$own) { $denied = true; break; }
-                $h->displayTemplate('users_edit_profile');
+                $h->template('users_edit_profile');
                 return true;
                 break;
             case 'user-settings':
                 if (!$admin && !$own) { $denied = true; break; }
-                $h->displayTemplate('users_settings');
+                $h->template('users_settings');
                 return true;
                 break;
             case 'permissions':
                 if (!$admin) { $denied = true; break; }
                 $this->editPermissions($h);
-                $h->displayTemplate('users_permissions');
+                $h->template('users_permissions');
                 return true;
                 break;
         }
@@ -434,7 +500,7 @@ class Users
     public function admin_theme_main_stats($h, $vars)
     {        
         $ui = new UserInfo();
-        $stats = $ui->stats($h);
+        $stats = $ui->stats($h); //, 'today');
 
 		//var_dump($stats);
 	
@@ -455,7 +521,7 @@ class Users
 	
 						switch ($stat_type) {
 						    case 'all':
-							$user_count = array_sum($users);						
+							$user_count = isset($users) ? array_sum($users) : '';						
 							break;
 						    default:
 							if (isset($users[$stat_type])) { $user_count = $users[$stat_type]; } else { $user_count = 0; }

@@ -2,11 +2,11 @@
 /**
  * name: Categories
  * description: Enables categories for posts
- * version: 1.9
+ * version: 2.0
  * folder: categories
  * class: Categories
  * type: categories
- * hooks: theme_index_top, header_include, pagehandling_getpagename, bookmarking_functions_preparelist, show_post_author_date, header_end, breadcrumbs, header_meta, post_rss_feed
+ * hooks: theme_index_top, install_plugin, header_include, pagehandling_getpagename, bookmarking_functions_preparelist, show_post_author_date, header_end, breadcrumbs, header_meta, post_rss_feed, admin_plugin_settings, admin_sidebar_plugin_settings
  * author: Nick Ramsay
  * authorurl: http://hotarucms.org/member.php?1-Nick
  *
@@ -34,6 +34,21 @@
 
 class Categories
 {
+    /*
+    * Setup the default settings
+    * */
+    public function install_plugin($h)
+    {
+           // Get plugin settings if they exist
+           $categories_settings = $h->getSerializedSettings();
+
+           if (!isset($categories_settings['categories_nav_style'])) { $categories_settings['categories_nav_style'] = 'style1'; }
+           if (!isset($categories_settings['categories_nav_show'])) { $categories_settings['categories_nav_show'] = 'checked'; }
+
+           // Update plugin settings
+           $h->updateSetting('categories_settings', serialize($categories_settings));
+    }
+        
     /**
      * Determine if we are filtering to a category
      * Categories might be numeric, e.g. category=3 or safe names, e.g. category=news_and_business
@@ -90,9 +105,15 @@ class Categories
      */
     public function header_include($h)
     {
-        // include a files that match the name of the plugin folder:
-        $h->includeJs('categories', 'suckerfish');
-        $h->includeCss();
+        $categories_settings = $h->getSerializedSettings();
+        $h->vars['categories_settings_nav_style'] = isset($categories_settings['categories_nav_style']) ? $categories_settings['categories_nav_style'] : 'style1';
+        $h->vars['categories_settings_nav_show'] = isset($categories_settings['categories_nav_show']) ? $categories_settings['categories_nav_show'] : 'checked';
+        
+        if ($h->vars['categories_settings_nav_style'] == 'style1') { 
+            $h->includeJs('categories', 'suckerfish');            
+        }
+        
+        $h->includeCss();      // include a files that match the name of the plugin folder:
     }
     
     
@@ -126,8 +147,6 @@ class Categories
         if (!$key || !$value) { return false; }
 
         $exists = $h->getCatId(urlencode($key));
-        //$sql = "SELECT category_id FROM " . TABLE_CATEGORIES . " WHERE category_safe_name = %s LIMIT 1";
-        //$exists = $h->db->get_var($h->db->prepare($sql, urlencode($key)));
         
         // no category? exit...
         if (!$exists) { return false; }
@@ -158,13 +177,13 @@ class Categories
             if (isset($cat_meta->category_desc)) {
                 echo '<meta name="description" content="' . urldecode($cat_meta->category_desc) . '" />' . "\n";
             } else {
-                echo '<meta name="description" content="' . $h->lang['header_meta_description'] . '" />' . "\n";  // default meta tags
+                echo '<meta name="description" content="' . $h->lang('header_meta_description') . '" />' . "\n";  // default meta tags
             }
             
             if (isset($cat_meta->category_keywords)) {
                 echo '<meta name="keywords" content="' . urldecode($cat_meta->category_keywords) . '" />' . "\n";
             } else {
-                echo '<meta name="description" content="' . $h->lang['header_meta_keywords'] . '" />' . "\n";  // default meta tags
+                echo '<meta name="description" content="' . $h->lang('header_meta_keywords') . '" />' . "\n";  // default meta tags
             }
 
             return true;
@@ -229,14 +248,14 @@ class Categories
     { 
         $crumbs = '';
                 
-        if ($h->subPage == 'category') // the pageType is "list"
+        if ($h->subPage == 'category' && isset($h->vars['category_parent'])) // the pageType is "list"
         {
             $parent_id = $h->vars['category_parent'];
             if ($parent_id > 1) {
                 $parent_name = $h->getCatName($parent_id);
                 $parent_name = stripslashes(htmlentities($parent_name, ENT_QUOTES, 'UTF-8'));
                 $crumbs .= "<a href='" . $h->url(array('category'=>$parent_id)) . "'>";
-                $crumbs .= $parent_name . "</a> &raquo; \n";
+                $crumbs .= $parent_name . "</a> / \n";
             }
     
             $crumbs .= "<a href='" . $h->url(array('category'=>$h->vars['category_id'])) . "'>\n";
@@ -280,7 +299,7 @@ class Categories
             $cat_name = $h->getCatName($h->post->category);
             $cat_name = htmlentities($cat_name, ENT_QUOTES,'UTF-8');
             
-            echo " " . $h->lang["categories_post_in"] . " ";
+            echo " " . $h->lang("categories_post_in") . " ";
             echo "<a href='" . $h->url(array('category'=>$h->post->category)) . "'>" . $cat_name . "</a>\n";
         }        
     }
@@ -294,91 +313,78 @@ class Categories
 
 
     /**
-     * Category Bar - shows categories as a drop-down menu
+     * Category Bar - categories nav bar
      *
-     * Adapted from:
-     * @link http://www.cssnewbie.com/easy-css-dropdown-menus/
      */
     public function header_end($h)
     {
-        $output = '';
-        
-        // get all top-level categories
-        $sql    = "SELECT * FROM " . TABLE_CATEGORIES . " WHERE category_id != %d AND category_parent = %d ORDER BY category_order ASC";
-        $query = $h->db->prepare($sql, 1, 1);
-        $h->smartCache('on', 'categories', 60, $query); // start using cache
-        $categories = $h->db->get_results($query);
+        if ($h->vars['categories_settings_nav_show'] == 'checked') {
+            $output = '';     
 
-		if ($h->pageType == 'post') {
-			// for showing the category tab as active when looking at a post:
-			$h->vars['category_id'] = $h->post->category;
-			$h->vars['category_parent'] = $h->getCatParent($h->post->category);
-		}
-       
-        if($categories)
-        {
-            foreach ($categories as $category)
-            {
-                $parent = $category->category_id;
-                
-                // Check for children 
-                $sql = "SELECT count(*) FROM " . TABLE_CATEGORIES . " WHERE category_parent = %d"; 
-                $countchildren = $h->db->get_var($h->db->prepare($sql, $parent)); 
-                   
-                // If children, go to a recursive function to build links for all children of this top-level category 
-                if ($countchildren) { 
-                    $depth = 1;
-                    $output = $this->buildMenuBar($h, $category, $output, $parent, $depth);
-                    $output .= "</ul>";
-                } else {  
-                    $output = $this->categoryLink($h, $category, $output); 
-                }
-                
-                $output .= "</li>\n";
-            }
+            $sql    = "SELECT category_id, category_parent, category_safe_name, category_name FROM " . TABLE_CATEGORIES . " ORDER BY category_parent, category_order ASC";
+            $query = $h->db->prepare($sql);
+            $h->smartCache('on', 'categories', 60, $query); // start using cache
+            $categories = $h->db->get_results($query);
+            $h->smartCache('off'); // stop using cache
+
+            // set the initial level Id as 1 for the top - as long as that never changes to be ALL
+            // TODO
+            // newly installed category plugin should always have cat1 = all but could it get changed for some reason?
+            // should we look up 'all' and return its id to be safe?
+            $topLevelId = 1;
+            $parentCats = array();
+
+            // if there are no categories set up yet (watch for the default all category in db as well)
+            if (!$categories || count($categories) == 1) { echo '<br/>'; return false; }
             
-            // Output the category bar
-            $h->vars['output'] = $output;   
-            $h->displayTemplate('category_bar');
+            // loop through the results and populate an array with the current top cats
+            foreach ($categories as $category) {
+                    if (strtolower($category->category_id) != 1) {
+                        $parentCats['p_' . $category->category_parent][] = $category;                                    
+                    }
+            }
+
+            // TODO
+            // If we are caching the db query, then why not also cache off this foreach loop result and save the processing power ?        
+            $h->vars['output'] = $this->loopCats($h, $parentCats, $topLevelId, '');
+
+            if ($h->vars['categories_settings_nav_style'] == 'style2') {
+                $h->template('category_bar_2');
+            } else {
+                $h->template('category_bar');
+            }
+        } else {
+                echo '<br/>';
         }
-        
-        $h->smartCache('off'); // stop using cache
     }
     
+    function loopCats($h, $parentCats, $topLevelId, $output = '') {
 
-    /** 
-     * Build Category Menu Bar - recursive function 
-     * 
-     * @param array $category  
-     * @param string $output  
-     * @param int $parent 
-     * @return string $output 
-     */ 
-    public function buildMenuBar($h, $category, $output, $parent, $depth) 
-    { 
-        $output = $this->categoryLink($h, $category, $output); 
+        if (!$parentCats) return $output;
+        
+        $thisLevel =  $parentCats['p_' . $topLevelId];
 
-        $sql = "SELECT count(*) FROM " . TABLE_CATEGORIES . " WHERE category_parent = %d"; 
-        $countchildren = $h->db->get_var($h->db->prepare($sql, $category->category_id)); 
+        if (!$thisLevel) return false;
+        
+        // loop through based on the top level and populate menus below it                        
+        foreach ($thisLevel as $category) {
 
-        if ($countchildren) { 
-            $output .=  "<ul class='children'>\n"; 
+            if (isset($parentCats['p_' . $category->category_id])) $children = count($parentCats['p_' . $category->category_id]); else $children = 0;
             
-            $sql = "SELECT * FROM " . TABLE_CATEGORIES . " WHERE category_parent = %d ORDER BY category_order ASC"; 
-            $children = $h->db->get_results($h->db->prepare($sql, $category->category_id)); 
-            
-            $depth++;
-            foreach ($children as $child) { 
-                if ($depth < 3) { 
-                    $output = $this->buildMenuBar($h, $child, $output, $child->category_id, $depth);
-                }
-            } 
-            $output .= "";
-            return $output; 
-        }  
-        $output .= "</li>";
-        return $output; 
+            // echo li with this function
+            $output .= $this->categoryLink($h, $category, '', $children); 
+
+            // call function to loop back on this with $parentCats['p_' . $category->category_id]
+            if ($children > 0) {
+                if ($h->vars['categories_settings_nav_style'] == 'style2') $output .= "<ul class='children dropdown-menu'>"; else $output .= "<ul class='children'>";
+                $output .= $this->loopCats($h, $parentCats, $category->category_id);
+                $output .= "</ul>";
+            }
+            $output .= "</li>";
+        }
+        return $output;
     }
+  
 
 
     /** 
@@ -388,7 +394,7 @@ class Categories
      * @param string $output  
      * @return string $output 
      */ 
-    public function categoryLink($h, $category, $output) 
+    public function categoryLink($h, $category, $output, $children = 0) 
     { 
         if (FRIENDLY_URLS == "true") {  
             $link = $category->category_safe_name;  
@@ -398,23 +404,28 @@ class Categories
         
         $active = '';
 
-		// give active status to highest parent tab 
-        if (isset($h->vars['category_id']))
-			{
-			// is this already a parent catgeory? Make the tab active:
-			if (($h->vars['category_id'] == $category->category_id)
-				&& ($category->category_parent == 1)) {
-			$active = " class='active_cat'";
-			} 
-			// is this a child category? If so, make the parent tab active:
-			elseif (isset($h->vars['category_parent']) &&($h->vars['category_parent'] == $category->category_id)) {
-            	$active = " class='active_cat'";
-			}
+	// give active status to highest parent tab 
+        if (isset($h->vars['category_id'])) {
+            // is this already a parent catgeory? Make the tab active:
+            if (($h->vars['category_id'] == $category->category_id) && ($category->category_parent == 1)) {
+                $active = " class='active_cat active'";
+            } 
+            // is this a child category? If so, make the parent tab active:
+            elseif (isset($h->vars['category_parent']) &&($h->vars['category_parent'] == $category->category_id)) {
+                $active = " class='active_cat active'";
+            }
         }
         
-        $category = stripslashes(urldecode($category->category_name));
-        $category = htmlentities($category, ENT_QUOTES,'UTF-8');
-        $output .= '<li' . $active . '><a href="' . $h->url(array('category'=>$link)) .'">' . $category . "</a>\n";
+        $category_name = stripslashes(urldecode($category->category_name));
+        $category_name = htmlentities($category_name, ENT_QUOTES,'UTF-8');
+        
+        if ($children && $h->vars['categories_settings_nav_style'] == 'style2') {            
+            //$output .= '<li class="divider-vertical"></li>';
+            $output .= '<li class="dropdown">';
+            $output .= '<a href="#" class="dropdown-toggle" data-toggle="dropdown">' . $category_name . ' <b class="caret"></b></a>'; 
+        } else {                            
+            $output .= '<li' . $active . '><a href="' . $h->url(array('category'=>$link)) .'">' . $category_name . "</a>\n";
+        }
         
         return $output; 
     } 
@@ -453,7 +464,7 @@ class Categories
         $h->vars['postRssFilter'][$filter_string] = $values; 
 
         $category = str_replace('_', ' ', stripslashes(html_entity_decode($cat_id, ENT_QUOTES,'UTF-8'))); 
-        $h->vars['postRssFeed']['description'] = $h->lang["post_rss_in_category"] . " " . $h->getCatName($cat_id); 
+        $h->vars['postRssFeed']['description'] = $h->lang("post_rss_in_category") . " " . $h->getCatName($cat_id); 
     }
 }
 

@@ -56,57 +56,57 @@ class CategoryManagerSettings
 	
 		    case "order":
 		    	$h->vars['the_cats'] = $h->getCategories($args);     // Get all the category info
-				$h->displayTemplate('cat_man_order', 'category_manager');
+				$h->template('cat_man_order', 'category_manager');
 				break;
 	
 		    case 'order_alpha':
 				$this->order($h, "category_name");     // ORDER ALPHABETICALLY PERMANENTLY IN THE DATABASE
-				$h->showMessage($h->lang["cat_man_order_alpha"], 'green');
+				$h->showMessage($h->lang("cat_man_order_alpha"), 'green');
 				$h->vars['the_cats'] = $h->getCategories($args);     // Get all the category info
-				$h->displayTemplate('cat_man_order', 'category_manager');
+				$h->template('cat_man_order', 'category_manager');
 				break;
 	
 		    case "order_length":
 				$this->order($h, "length(category_name)");     // ORDER BY LENGTH PERMANENTLY IN THE DATABASE
-				$h->showMessage($h->lang["cat_man_order_length"], 'green');
+				$h->showMessage($h->lang("cat_man_order_length"), 'green');
 				$h->vars['the_cats'] = $h->getCategories($args);     // Get all the category info
-				$h->displayTemplate('cat_man_order', 'category_manager');
+				$h->template('cat_man_order', 'category_manager');
 				break;
 	
 		    case "order_posts":
 				$this->orderByPosts($h);     // ORDER BY POSTS PERMANENTLY IN THE DATABASE
-				$h->showMessage($h->lang["cat_man_order_posts"], 'green');
+				$h->showMessage($h->lang("cat_man_order_posts"), 'green');
 				$h->vars['the_cats'] = $h->getCategories($args);     // Get all the category info
-				$h->displayTemplate('cat_man_order', 'category_manager');
+				$h->template('cat_man_order', 'category_manager');
 				break;
 	
 		    case "order_id":
 				$this->order($h, "category_id");     // ORDER BY ID PERMANENTLY IN THE DATABASE
-				$h->showMessage($h->lang["cat_man_order_id"], 'green');
+				$h->showMessage($h->lang("cat_man_order_id"), 'green');
 				$h->vars['the_cats'] = $h->getCategories($args);     // Get all the category info
-				$h->displayTemplate('cat_man_order', 'category_manager');
+				$h->template('cat_man_order', 'category_manager');
 				break;
 	
 		    case "edit":
 		    	$h->vars['the_cats'] = $h->getCategories($args);     // Get all the category info
-				$h->displayTemplate('cat_man_edit', 'category_manager');
+				$h->template('cat_man_edit', 'category_manager');
 				break;
 	
 		    case "edit_save":
 				if ($h->cage->post->keyExists('save_all')) {
 				    $this->updateCategoryNames($h);
-				    $h->showMessage($h->lang["cat_man_changes_saved"], 'green');
+				    $h->showMessage($h->lang("cat_man_changes_saved"), 'green');
 				} else {
-				    $h->showMessage($h->lang["cat_man_changes_cancelled"], 'green');
+				    $h->showMessage($h->lang("cat_man_changes_cancelled"), 'green');
 				}
 				$h->vars['the_cats'] = $h->getCategories($args);     // Get all the category info
-				$h->displayTemplate('cat_man_edit', 'category_manager');
+				$h->template('cat_man_edit', 'category_manager');
 				break;
 	
 		    case "edit_meta":
 				$args = array('levels'=>'true');
 				$h->vars['the_cats'] = $h->getCategories($args);     // Get all the category info
-				$h->displayTemplate('cat_man_edit_meta', 'category_manager');
+				$h->template('cat_man_edit_meta', 'category_manager');
 				break;
 	
 		    case "edit_meta_save":
@@ -116,18 +116,18 @@ class CategoryManagerSettings
 					$description = $h->cage->post->sanitizeTags('description');
 					$keywords = $h->cage->post->sanitizeTags('keywords');
 					$this->saveMeta($h, $category_meta_id, $description, $keywords);
-					$h->showMessage($h->lang["cat_man_changes_saved"], 'green');
+					$h->showMessage($h->lang("cat_man_changes_saved"), 'green');
 				    }
 				} else {
-				    $h->showMessage($h->lang["cat_man_form_error"], 'red');
+				    $h->showMessage($h->lang("cat_man_form_error"), 'red');
 				}
 				$h->vars['the_cats'] = $h->getCategories($args);     // Get all the category info
-				$h->displayTemplate('cat_man_edit_meta', 'category_manager');
+				$h->template('cat_man_edit_meta', 'category_manager');
 				break;
 	
 		    case "add":
 		    	$h->vars['the_cats'] = $h->getCategories($args);     // Get all the category info
-				$h->displayTemplate('cat_man_add', 'category_manager');
+				$h->template('cat_man_add', 'category_manager');
 				break;
 	
 		    case "add_save":
@@ -146,23 +146,23 @@ class CategoryManagerSettings
 					}
 					$result = $h->addCategory($parent, $new_cat_name);
 					if ($result)
-					    $h->showMessage($h->lang["cat_man_category_added"], 'green');
+					    $h->showMessage($h->lang("cat_man_category_added"), 'green');
 					else
-					    $h->showMessage($h->lang["cat_man_category_exists"], 'red');
+					    $h->showMessage($h->lang("cat_man_category_exists"), 'red');
 				    } else {
-					$h->showMessage($h->lang["cat_man_category_not_added"], 'red');
+					$h->showMessage($h->lang("cat_man_category_not_added"), 'red');
 				    }
 				} else {
-				    $h->showMessage($h->lang["cat_man_form_error"], 'red');
+				    $h->showMessage($h->lang("cat_man_form_error"), 'red');
 				}
 				
 				$h->vars['the_cats'] = $h->getCategories($args);     // Get all the category info
-				$h->displayTemplate('cat_man_add', 'category_manager');
+				$h->template('cat_man_add', 'category_manager');
 				break;
 	
 		    case "move":
 		    	$h->vars['the_cats'] = $h->getCategories($args);     // Get all the category info
-				$h->displayTemplate('cat_man_move', 'category_manager');
+				$h->template('cat_man_move', 'category_manager');
 				break;
 	
 		    case "move_save":
@@ -174,34 +174,34 @@ class CategoryManagerSettings
 					$target = $h->cage->post->testAlnum('parents');
 					$success = $this->move($h, $cat_to_move, $placement, $target);
 					if ($success) {
-					    $h->showMessage($h->lang["cat_man_category_moved"], 'green');
+					    $h->showMessage($h->lang("cat_man_category_moved"), 'green');
 					} else {
-					    $h->showMessage($h->lang["cat_man_category_not_moved"], 'red');
+					    $h->showMessage($h->lang("cat_man_category_not_moved"), 'red');
 					}
 		
 				    } elseif ($h->cage->post->keyExists('save_form2')) {
 					$target = $h->cage->post->testAlnum('moveup');
 					$success = $this->move($h, $cat_to_move, 'none', $target);
 					if ($success) {
-					    $h->showMessage($h->lang["cat_man_category_moved"], 'green');
+					    $h->showMessage($h->lang("cat_man_category_moved"), 'green');
 					} else {
-					    $h->showMessage($h->lang["cat_man_category_not_moved"], 'red');
+					    $h->showMessage($h->lang("cat_man_category_not_moved"), 'red');
 					}
 				    } else {
-					$h->showMessage($h->lang["cat_man_category_not_moved"], 'red');
+					$h->showMessage($h->lang("cat_man_category_not_moved"), 'red');
 				    }
 		
 				} else {
-				    $h->showMessage($h->lang["cat_man_category_not_moved"], 'red');
+				    $h->showMessage($h->lang("cat_man_category_not_moved"), 'red');
 				}
 				
 				$h->vars['the_cats'] = $h->getCategories($args);     // Get all the category info
-				$h->displayTemplate('cat_man_move', 'category_manager');
+				$h->template('cat_man_move', 'category_manager');
 				break;
 	
 		    case "delete":
 				$h->vars['the_cats'] = $h->getCategories($args);     // Get all the category info
-				$h->displayTemplate('cat_man_delete', 'category_manager');
+				$h->template('cat_man_delete', 'category_manager');
 				break;
 	
 		    case "delete_save":
@@ -215,12 +215,12 @@ class CategoryManagerSettings
 					$del_count++;
 				    }
 				    $h->vars['the_cats'] = $h->getCategories($args);     // Get all the category info
-				    $h->displayTemplate('cat_man_delete_confirm', 'category_manager');
+				    $h->template('cat_man_delete_confirm', 'category_manager');
 				    break;
 				} else {
-				    $h->showMessage($h->lang["cat_man_category_not_deleted"], 'red');
+				    $h->showMessage($h->lang("cat_man_category_not_deleted"), 'red');
 				    $h->vars['the_cats'] = $h->getCategories($args);     // Get all the category info
-				    $h->displayTemplate('cat_man_delete', 'category_manager');
+				    $h->template('cat_man_delete', 'category_manager');
 				    break;
 				}
 	
@@ -230,18 +230,18 @@ class CategoryManagerSettings
 					    $h->deleteCategory($cat_id);
 				    }
 				    $h->rebuildTree(1, 0);
-				    $h->showMessage($h->lang["cat_man_category_deleted"], 'green');
+				    $h->showMessage($h->lang("cat_man_category_deleted"), 'green');
 				} else {
-				    $h->showMessage($h->lang["cat_man_category_not_deleted"], 'red');
+				    $h->showMessage($h->lang("cat_man_category_not_deleted"), 'red');
 				    $h->showMessage();
 				}
 				$h->vars['the_cats'] = $h->getCategories($args);     // Get all the category info
-				$h->displayTemplate('cat_man_delete', 'category_manager');
+				$h->template('cat_man_delete', 'category_manager');
 				break;
 	
 		    default:
 		    	$h->vars['the_cats'] = $h->getCategories($args);     // Get all the category info
-				$h->displayTemplate('cat_man_main', 'category_manager');
+				$h->template('cat_man_main', 'category_manager');
 				break;
 		}
 		

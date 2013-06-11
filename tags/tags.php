@@ -2,7 +2,7 @@
 /**
  * name: Tags
  * description: Show tags, filter tags and RSS for tags
- * version: 1.8
+ * version: 1.9
  * folder: tags
  * class: Tags
  * type: tags
@@ -79,15 +79,15 @@ class Tags
      */
     public function header_include_raw($h)
     {    
-        echo "<script type='text/javascript'>\n";
-        echo "$(document).ready(function(){\n";
-            echo "$('.tags_link').click(function () {\n";
-            echo "var target = $(this).parents('div').nextAll('div.show_post_extras').children('div.show_tags');\n";
-            echo "target.fadeToggle();\n";
-            echo "return false;\n";
-            echo "});\n";
-        echo "});\n";
-        echo "</script>\n";
+//        echo "<script type='text/javascript'>\n";
+//        echo "$(document).ready(function(){\n";
+//            echo "$('.tags_link').click(function () {\n";
+//            echo "var target = $(this).parents('div').nextAll('div.show_post_extras').children('div.show_tags');\n";
+//            echo "target.fadeToggle();\n";
+//            echo "return false;\n";
+//            echo "});\n";
+//        echo "});\n";
+//        echo "</script>\n";
     }
 
     
@@ -171,7 +171,7 @@ class Tags
         }
         
         foreach ($tags as $tag) {
-            echo "<li><a class='label' href='" . $h->url(array('tag' => str_replace(' ', '_', trim($tag)))) . "'>" . trim($tag) . "</a></li>";
+            echo "<li><a class='label' href='" . $h->url(array('tag' => str_replace(' ', '_', urlencode(trim($tag))))) . "'>" . trim($tag) . "</a></li>";
         }
         
         if (!$raw) {
