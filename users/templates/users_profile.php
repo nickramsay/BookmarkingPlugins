@@ -27,20 +27,18 @@
 $profile = $h->vars['profile'];
 
 //defaults:
-    if (!isset($profile['bio'])) { $profile['bio'] = $h->lang['users_profile_default_bio']; }
+    if (!isset($profile['bio'])) { $profile['bio'] = $h->lang('users_profile_default_bio'); }
     $h->pluginHook('user_profile_defaults'); 
 ?>
 
 <div id="profile" class="users_content">
-
-<h2><?php echo $h->lang["users_profile"]; ?>: <?php echo $h->vars['user']->name; ?></h2>
    
     <div id="profile_bio">
         <?php echo $profile['bio']; ?>
     </div>
     
     <div class="clear"></div>
-
+    
     <?php $h->pluginHook('profile'); ?>
     
 </div>

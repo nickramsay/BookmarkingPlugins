@@ -2,7 +2,7 @@
 /**
  * name: Submit
  * description: Social Bookmarking submit - Enables post submission
- * version: 3.2
+ * version: 3.5
  * folder: submit
  * class: Submit
  * type: post
@@ -84,6 +84,7 @@ class Submit
         if (!isset($submit_settings['allowable_tags'])) { $submit_settings['allowable_tags'] = "<b><i><u><a><blockquote><del>"; }
         if (!isset($submit_settings['url_limit'])) { $submit_settings['url_limit'] = 0; }
         if (!isset($submit_settings['daily_limit'])) { $submit_settings['daily_limit'] = 0; }
+        if (!isset($submit_settings['period_limit'])) { $submit_settings['period_limit'] = 0; }
         if (!isset($submit_settings['freq_limit'])) { $submit_settings['freq_limit'] = 0; }
         if (!isset($submit_settings['set_pending'])) { $submit_settings['set_pending'] = ""; } // sets all new posts to pending 
         if (!isset($submit_settings['x_posts'])) { $submit_settings['x_posts'] = 1; }
@@ -138,7 +139,7 @@ class Submit
         }
         
         // return false if submission is closed
-        if ($h->vars['submission_closed']) {
+        if ($h->vars['submission_closed'] && $h->pageName != 'edit_post') {
             // Submission is closed
             $h->messages[$h->lang["submit_posting_closed"]] = "red";
             return false;
@@ -371,7 +372,7 @@ class Submit
             $h->post->id = $h->cage->post->testInt('submit_post_id');
             $h->readPost();
         }
-        
+
         // authenticate...
         $can_edit = false;
         if ($h->currentUser->getPermission('can_edit_posts') == 'yes') { $can_edit = true; }
@@ -496,7 +497,7 @@ class Submit
         if (isset($h->vars['submission_closed']) && $h->vars['submission_closed'] == true) { return false; }
         
         // highlight "Submit" as active tab
-        if ($h->pageType == 'submit') { $status = "id='navigation_active'"; } else { $status = ""; }
+        if ($h->pageType == 'submit') { $status = "id='navigation_active' class='active'"; } else { $status = ""; }
         
         // display the link in the navigation bar
         echo "<li " . $status . "><a href='" . $h->url(array('page'=>'submit')) . "'>" . $h->lang['submit_submit_a_story'] . "</a></li>";
@@ -511,7 +512,7 @@ class Submit
         if ($h->pageName == 'edit_post') {
             $post_link = "<a href='" . $h->url(array('page'=>$h->post->id)) . "'>";
             $post_link .= $h->post->title . "</a>";
-            $h->pageTitle = $h->pageTitle . " &raquo; " . $post_link;
+            $h->pageTitle = $h->pageTitle . " / " . $post_link;
         }
     }
     
@@ -539,7 +540,7 @@ class Submit
                 }
             
                 // display template
-                $h->displayTemplate('submit1');
+                $h->template('submit1');
                 return true;
                 break;
                 
@@ -579,7 +580,7 @@ class Submit
                 }
                 
                 // display template
-                $h->displayTemplate('submit2');
+                $h->template('submit2');
                 return true;
                 break;
                 
@@ -597,13 +598,13 @@ class Submit
                 $h->vars['editorial'] = true; // this makes the link unclickable
                 
                 // display template
-                $h->displayTemplate('submit3');
+                $h->template('submit3');
                 return true;
                 break;
                 
             // Edit Post
-            case 'edit_post':
-                if ((isset($h->vars['post_deleted']) && $h->vars['post_deleted']) || !$h->vars['can_edit']) {
+            case 'edit_post':                
+                if ((isset($h->vars['post_deleted']) && $h->vars['post_deleted']) || (isset($h->vars['can_edit']) && !$h->vars['can_edit'])) {
                     $h->showMessages();
                     return true;
                 }
@@ -624,7 +625,7 @@ class Submit
                 $h->vars['submit_category'] = $h->post->category;
                 $h->vars['submit_tags'] = $h->post->tags;
                 
-                $h->vars['submit_editorial'] = $h->vars['submitted_data']['submit_editorial'];
+                $h->vars['submit_editorial'] = isset($h->vars['submitted_data']['submit_editorial']) ? $h->vars['submitted_data']['submit_editorial'] : '';
                 $h->vars['submit_pm_from'] = $h->cage->get->testAlnumLines('from');
                 $h->vars['submit_pm_search'] = $h->cage->get->getHtmLawed('search_value');
                 $h->vars['submit_pm_filter'] = $h->cage->get->testAlnumLines('post_status_filter');
@@ -655,7 +656,7 @@ class Submit
                 }
                 
                 // display template
-                $h->displayTemplate('submit_edit');
+                $h->template('submit_edit');
                 return true;
                 break;
                 

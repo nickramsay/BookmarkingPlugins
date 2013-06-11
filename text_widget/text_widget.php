@@ -12,7 +12,7 @@
  *
  * EXAMPLE OF USING A TEMPLATE:
  * To use the example template, create a new text widget, check the PHP box and add this code:
- * $h->displayTemplate('example', 'text_widget');
+ * $h->template('example', 'text_widget');
  * Activate "Text Widget" in Widgets and you should see a new search box widget in your widget block
  *
  * PHP version 5
@@ -92,7 +92,8 @@ class TextWidget
         foreach ($ids as $id) { 
             
             // Get settings from the database:
-            $settings = unserialize($h->getSetting('text_widget_' . $id . '_settings', 'text_widget')); 
+            $settings = unserialize($h->getSetting('text_widget_' . $id . '_settings', 'text_widget'));   
+
             $title = html_entity_decode(stripslashes($settings['text_widget_title']), ENT_QUOTES,'UTF-8');
             $content = html_entity_decode(stripslashes($settings['text_widget_content']), ENT_QUOTES,'UTF-8');
 

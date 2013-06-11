@@ -27,8 +27,7 @@
 
 //$json_array = array('result'=>'test_okay');
 //echo json_encode($json_array); exit;
-
-require_once('../../../hotaru_settings.php');
+require_once('../../../config/settings.php');
 require_once('../../../Hotaru.php');    // Not the cleanest way of getting to the root...
 
 $h = new Hotaru();
